@@ -1,7 +1,6 @@
 package voter
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"math/big"
@@ -15,9 +14,6 @@ import (
 
 type MessageHandlerFunc func(m *message.Message, handlerAddr, bridgeAddress common.Address) (*proposal.Proposal, error)
 
-// NewEVMMessageHandler creates an instance of EVMMessageHandler that contains
-// message handler functions for converting deposit message into a chain specific
-// proposal
 func NewEVMMessageHandler(bridgeContract bridge.BridgeContract) *EVMMessageHandler {
 	return &EVMMessageHandler{
 		bridgeContract: bridgeContract,
@@ -30,17 +26,14 @@ type EVMMessageHandler struct {
 }
 
 func (mh *EVMMessageHandler) HandleMessage(m *message.Message) (*proposal.Proposal, error) {
-	// Matching resource ID with handler.
 	addr, err := mh.bridgeContract.GetHandlerAddressForResourceID(m.ResourceId)
 	if err != nil {
 		return nil, err
 	}
-	// Based on handler that registered on BridgeContract
 	handleMessage, err := mh.MatchAddressWithHandlerFunc(addr)
 	if err != nil {
 		return nil, err
 	}
-	log.Info().Str("type", string(m.Type)).Uint8("src", m.Source).Uint8("dst", m.Destination).Uint64("nonce", m.DepositNonce).Str("resourceID", fmt.Sprintf("%x", m.ResourceId)).Msg("Handling new message")
 	prop, err := handleMessage(m, addr, *mh.bridgeContract.ContractAddress())
 	if err != nil {
 		return nil, err
@@ -56,7 +49,6 @@ func (mh *EVMMessageHandler) MatchAddressWithHandlerFunc(addr common.Address) (M
 	return h, nil
 }
 
-// RegisterEventHandler registers an message handler by associating a handler function to a specified address
 func (mh *EVMMessageHandler) RegisterMessageHandler(address string, handler MessageHandlerFunc) {
 	if address == "" {
 		return
@@ -71,9 +63,6 @@ func (mh *EVMMessageHandler) RegisterMessageHandler(address string, handler Mess
 }
 
 func ERC20MessageHandler(m *message.Message, handlerAddr, bridgeAddress common.Address) (*proposal.Proposal, error) {
-	if len(m.Payload) != 2 {
-		return nil, errors.New("malformed payload. Len  of payload should be 2")
-	}
 	amount, ok := m.Payload[0].([]byte)
 	if !ok {
 		return nil, errors.New("wrong payloads amount format")
@@ -83,51 +72,9 @@ func ERC20MessageHandler(m *message.Message, handlerAddr, bridgeAddress common.A
 		return nil, errors.New("wrong payloads recipient format")
 	}
 	var data []byte
-	data = append(data, common.LeftPadBytes(amount, 32)...) // amount (uint256)
+	data = append(data, common.LeftPadBytes(amount, 32)...)
 	recipientLen := big.NewInt(int64(len(recipient))).Bytes()
-	data = append(data, common.LeftPadBytes(recipientLen, 32)...) // length of recipient (uint256)
-	data = append(data, recipient...)                             // recipient ([]byte)
+	data = append(data, common.LeftPadBytes(recipientLen, 32)...)
+	data = append(data, recipient...)
 	return proposal.NewProposal(m.Source, m.DepositNonce, m.ResourceId, data, handlerAddr, bridgeAddress), nil
-}
-
-func ERC721MessageHandler(msg *message.Message, handlerAddr, bridgeAddress common.Address) (*proposal.Proposal, error) {
-	if len(msg.Payload) != 3 {
-		return nil, errors.New("malformed payload. Len  of payload should be 3")
-	}
-	tokenID, ok := msg.Payload[0].([]byte)
-	if !ok {
-		return nil, errors.New("wrong payloads tokenID format")
-	}
-	recipient, ok := msg.Payload[1].([]byte)
-	if !ok {
-		return nil, errors.New("wrong payloads recipient format")
-	}
-	metadata, ok := msg.Payload[2].([]byte)
-	if !ok {
-		return nil, errors.New("wrong payloads metadata format")
-	}
-	data := bytes.Buffer{}
-	data.Write(common.LeftPadBytes(tokenID, 32))
-	recipientLen := big.NewInt(int64(len(recipient))).Bytes()
-	data.Write(common.LeftPadBytes(recipientLen, 32))
-	data.Write(recipient)
-	metadataLen := big.NewInt(int64(len(metadata))).Bytes()
-	data.Write(common.LeftPadBytes(metadataLen, 32))
-	data.Write(metadata)
-	return proposal.NewProposal(msg.Source, msg.DepositNonce, msg.ResourceId, data.Bytes(), handlerAddr, bridgeAddress), nil
-}
-
-func GenericMessageHandler(msg *message.Message, handlerAddr, bridgeAddress common.Address) (*proposal.Proposal, error) {
-	if len(msg.Payload) != 1 {
-		return nil, errors.New("malformed payload. Len  of payload should be 1")
-	}
-	metadata, ok := msg.Payload[0].([]byte)
-	if !ok {
-		return nil, errors.New("unable to convert metadata to []byte")
-	}
-	data := bytes.Buffer{}
-	metadataLen := big.NewInt(int64(len(metadata))).Bytes()
-	data.Write(common.LeftPadBytes(metadataLen, 32)) // length of metadata (uint256)
-	data.Write(metadata)
-	return proposal.NewProposal(msg.Source, msg.DepositNonce, msg.ResourceId, data.Bytes(), handlerAddr, bridgeAddress), nil
 }
