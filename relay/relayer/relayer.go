@@ -4,8 +4,6 @@
 package relayer
 
 import (
-	"fmt"
-
 	"github.com/mpetrun5/diplomski-projekt/relayer/message"
 	"github.com/rs/zerolog/log"
 )
@@ -20,15 +18,14 @@ type RelayedChain interface {
 	DomainID() uint8
 }
 
-func NewRelayer(chains []RelayedChain, metrics Metrics, messageProcessors ...message.MessageProcessor) *Relayer {
-	return &Relayer{relayedChains: chains, messageProcessors: messageProcessors, metrics: metrics}
+func NewRelayer(chains []RelayedChain) *Relayer {
+	return &Relayer{relayedChains: chains}
 }
 
 type Relayer struct {
-	metrics           Metrics
-	relayedChains     []RelayedChain
-	registry          map[uint8]RelayedChain
-	messageProcessors []message.MessageProcessor
+	metrics       Metrics
+	relayedChains []RelayedChain
+	registry      map[uint8]RelayedChain
 }
 
 func (r *Relayer) Start(stop <-chan struct{}, sysErr chan error) {
@@ -59,13 +56,6 @@ func (r *Relayer) route(m *message.Message) {
 	if !ok {
 		log.Error().Msgf("no resolver for destID %v to send message registered", m.Destination)
 		return
-	}
-
-	for _, mp := range r.messageProcessors {
-		if err := mp(m); err != nil {
-			log.Error().Err(fmt.Errorf("error %w processing mesage %v", err, m))
-			return
-		}
 	}
 
 	log.Debug().Msgf("Sending message %+v to destination %v", m, m.Destination)

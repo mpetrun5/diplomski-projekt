@@ -4,17 +4,12 @@
 package voter
 
 import (
-	"context"
 	"fmt"
-	"math/big"
 	"time"
 
-	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls"
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls/transactor"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethereumTypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/voter/proposal"
 	"github.com/mpetrun5/diplomski-projekt/relayer/message"
 	"github.com/rs/zerolog/log"
@@ -30,14 +25,6 @@ var (
 	Sleep = time.Sleep
 )
 
-type ChainClient interface {
-	RelayerAddress() common.Address
-	CallContract(ctx context.Context, callArgs map[string]interface{}, blockNumber *big.Int) ([]byte, error)
-	SubscribePendingTransactions(ctx context.Context, ch chan<- common.Hash) (*rpc.ClientSubscription, error)
-	TransactionByHash(ctx context.Context, hash common.Hash) (tx *ethereumTypes.Transaction, isPending bool, err error)
-	calls.ContractCallerDispatcher
-}
-
 type MessageHandler interface {
 	HandleMessage(m *message.Message) (*proposal.Proposal, error)
 }
@@ -48,15 +35,13 @@ type BridgeContract interface {
 
 type EVMVoter struct {
 	mh                   MessageHandler
-	client               ChainClient
 	bridgeContract       BridgeContract
 	pendingProposalVotes map[common.Hash]uint8
 }
 
-func NewVoter(mh MessageHandler, client ChainClient, bridgeContract BridgeContract) *EVMVoter {
+func NewVoter(mh MessageHandler, bridgeContract BridgeContract) *EVMVoter {
 	return &EVMVoter{
 		mh:                   mh,
-		client:               client,
 		bridgeContract:       bridgeContract,
 		pendingProposalVotes: make(map[common.Hash]uint8),
 	}

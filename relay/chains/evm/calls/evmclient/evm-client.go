@@ -253,6 +253,10 @@ func (c *EVMClient) BaseFee() (*big.Int, error) {
 	return head.BaseFee, nil
 }
 
+func (c *EVMClient) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
+	return big.NewInt(1000000000000), nil
+}
+
 func toBlockNumArg(number *big.Int) string {
 	if number == nil {
 		return "latest"
