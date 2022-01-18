@@ -21,7 +21,6 @@ import (
 	"github.com/mpetrun5/diplomski-projekt/lvldb"
 	"github.com/mpetrun5/diplomski-projekt/relayer"
 	"github.com/mpetrun5/diplomski-projekt/store"
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
@@ -82,11 +81,7 @@ func Run() error {
 
 	select {
 	case err := <-errChn:
-		log.Error().Err(err).Msg("failed to listen and serve")
 		close(stopChn)
 		return err
-	case sig := <-sysErr:
-		log.Info().Msgf("terminating got [%v] signal", sig)
-		return nil
 	}
 }

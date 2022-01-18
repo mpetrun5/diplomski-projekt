@@ -3,7 +3,6 @@ package evmclient
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls/consts"
 	"github.com/mpetrun5/diplomski-projekt/crypto/secp256k1"
-	"github.com/mpetrun5/diplomski-projekt/util"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -23,8 +21,13 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	bridgeTypes "github.com/mpetrun5/diplomski-projekt/types"
 	"github.com/rs/zerolog/log"
+)
+
+const (
+	Deposit       = "Deposit(uint8,bytes32,uint64,address,bytes,bytes)"
+	ProposalEvent = "ProposalEvent(uint8,uint64,uint8,bytes32)"
+	ProposalVote  = "ProposalVote(uint8,uint64,uint8,bytes32)"
 )
 
 type EVMClient struct {
@@ -37,7 +40,7 @@ type EVMClient struct {
 
 type DepositLogs struct {
 	DestinationDomainID uint8
-	ResourceID          bridgeTypes.ResourceID
+	ResourceID          [32]byte
 	DepositNonce        uint64
 	SenderAddress       common.Address
 	Data                []byte
@@ -78,21 +81,6 @@ type headerNumber struct {
 	Number *big.Int `json:"number"           gencodec:"required"`
 }
 
-func (h *headerNumber) UnmarshalJSON(input []byte) error {
-	type headerNumber struct {
-		Number *hexutil.Big `json:"number" gencodec:"required"`
-	}
-	var dec headerNumber
-	if err := json.Unmarshal(input, &dec); err != nil {
-		return err
-	}
-	if dec.Number == nil {
-		return errors.New("missing required field 'number' for Header")
-	}
-	h.Number = (*big.Int)(dec.Number)
-	return nil
-}
-
 func (c *EVMClient) WaitAndReturnTxReceipt(h common.Hash) (*types.Receipt, error) {
 	retry := 50
 	for retry > 0 {
@@ -115,7 +103,7 @@ func (c *EVMClient) GetTransactionByHash(h common.Hash) (tx *types.Transaction, 
 }
 
 func (c *EVMClient) FetchDepositLogs(ctx context.Context, contractAddress common.Address, startBlock *big.Int, endBlock *big.Int) ([]*DepositLogs, error) {
-	logs, err := c.FilterLogs(ctx, buildQuery(contractAddress, string(util.Deposit), startBlock, endBlock))
+	logs, err := c.FilterLogs(ctx, buildQuery(contractAddress, string(Deposit), startBlock, endBlock))
 	if err != nil {
 		return nil, err
 	}

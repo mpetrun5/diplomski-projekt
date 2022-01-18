@@ -5,7 +5,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mpetrun5/diplomski-projekt/crypto/secp256k1"
-	"github.com/mpetrun5/diplomski-projekt/types"
 )
 
 //flag vars
@@ -19,7 +18,7 @@ var (
 //processed flag vars
 var (
 	BridgeAddr         common.Address
-	ResourceIdBytesArr types.ResourceID
+	ResourceIdBytesArr [32]byte
 	HandlerAddr        common.Address
 	TargetContractAddr common.Address
 )

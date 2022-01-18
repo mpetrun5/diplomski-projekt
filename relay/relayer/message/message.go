@@ -5,8 +5,6 @@ package message
 
 import (
 	"math/big"
-
-	"github.com/mpetrun5/diplomski-projekt/types"
 )
 
 type TransferType string
@@ -36,7 +34,7 @@ type Message struct {
 	Source       uint8
 	Destination  uint8
 	DepositNonce uint64
-	ResourceId   types.ResourceID
+	ResourceId   [32]byte
 	Payload      []interface{}
 	Type         TransferType
 }

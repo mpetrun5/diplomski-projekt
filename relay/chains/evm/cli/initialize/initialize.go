@@ -28,11 +28,7 @@ func InitializeTransactor(
 	txFabric calls.TxFabric,
 	client *evmclient.EVMClient,
 ) (transactor.Transactor, error) {
-	gasPricer := evmgaspricer.NewStaticGasPriceDeterminant(
-		client,
-		&evmgaspricer.GasPricerOpts{UpperLimitFeePerGas: gasPrice},
-	)
-
+	gasPricer := evmgaspricer.NewStaticGasPriceDeterminant(client)
 	trans := signAndSend.NewSignAndSendTransactor(txFabric, gasPricer, client)
 	return trans, nil
 }

@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/voter/proposal"
-	"github.com/mpetrun5/diplomski-projekt/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -34,7 +33,7 @@ func NewBridgeContract(
 
 func (c *BridgeContract) AdminSetResource(
 	handlerAddr common.Address,
-	rID types.ResourceID,
+	rID [32]byte,
 	targetContractAddr common.Address,
 	opts transactor.TransactOptions,
 ) (*common.Hash, error) {
@@ -47,7 +46,7 @@ func (c *BridgeContract) AdminSetResource(
 }
 
 func (c *BridgeContract) deposit(
-	resourceID types.ResourceID,
+	resourceID [32]byte,
 	destDomainID uint8,
 	data []byte,
 	opts transactor.TransactOptions,
@@ -62,7 +61,7 @@ func (c *BridgeContract) deposit(
 func (c *BridgeContract) Erc20Deposit(
 	recipient common.Address,
 	amount *big.Int,
-	resourceID types.ResourceID,
+	resourceID [32]byte,
 	destDomainID uint8,
 	opts transactor.TransactOptions,
 ) (*common.Hash, error) {
@@ -87,7 +86,7 @@ func (c *BridgeContract) VoteProposal(
 }
 
 func (c *BridgeContract) GetHandlerAddressForResourceID(
-	resourceID types.ResourceID,
+	resourceID [32]byte,
 ) (common.Address, error) {
 	res, err := c.CallContract("_resourceIDToHandlerAddress", resourceID)
 	if err != nil {

@@ -7,8 +7,6 @@ import (
 
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls"
 
-	"github.com/mpetrun5/diplomski-projekt/types"
-
 	"github.com/mpetrun5/diplomski-projekt/crypto/secp256k1"
 	"github.com/spf13/cobra"
 )
@@ -58,7 +56,7 @@ func defineSender(cmd *cobra.Command) (*secp256k1.Keypair, error) {
 	return nil, nil
 }
 
-func ProcessResourceID(resourceID string) (types.ResourceID, error) {
+func ProcessResourceID(resourceID string) ([32]byte, error) {
 	if resourceID[0:2] == "0x" {
 		resourceID = resourceID[2:]
 	}

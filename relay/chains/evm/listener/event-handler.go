@@ -5,14 +5,13 @@ import (
 
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls/contracts/bridge"
 	"github.com/mpetrun5/diplomski-projekt/relayer/message"
-	"github.com/mpetrun5/diplomski-projekt/types"
 	"github.com/rs/zerolog/log"
 
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type EventHandlers map[common.Address]EventHandlerFunc
-type EventHandlerFunc func(sourceID, destId uint8, nonce uint64, resourceID types.ResourceID, calldata, handlerResponse []byte) (*message.Message, error)
+type EventHandlerFunc func(sourceID, destId uint8, nonce uint64, resourceID [32]byte, calldata, handlerResponse []byte) (*message.Message, error)
 
 type ETHEventHandler struct {
 	bridgeContract bridge.BridgeContract
@@ -25,7 +24,7 @@ func NewETHEventHandler(bridgeContract bridge.BridgeContract) *ETHEventHandler {
 	}
 }
 
-func (e *ETHEventHandler) HandleEvent(sourceID, destID uint8, depositNonce uint64, resourceID types.ResourceID, calldata, handlerResponse []byte) (*message.Message, error) {
+func (e *ETHEventHandler) HandleEvent(sourceID, destID uint8, depositNonce uint64, resourceID [32]byte, calldata, handlerResponse []byte) (*message.Message, error) {
 	handlerAddr, err := e.bridgeContract.GetHandlerAddressForResourceID(resourceID)
 	if err != nil {
 		return nil, err
@@ -61,7 +60,7 @@ func (e *ETHEventHandler) RegisterEventHandler(handlerAddress string, handler Ev
 	e.eventHandlers[common.HexToAddress(handlerAddress)] = handler
 }
 
-func Erc20EventHandler(sourceID, destId uint8, nonce uint64, resourceID types.ResourceID, calldata, handlerResponse []byte) (*message.Message, error) {
+func Erc20EventHandler(sourceID, destId uint8, nonce uint64, resourceID [32]byte, calldata, handlerResponse []byte) (*message.Message, error) {
 	if len(calldata) < 84 {
 		err := errors.New("invalid calldata length: less than 84 bytes")
 		return nil, err

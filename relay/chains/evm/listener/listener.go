@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mpetrun5/diplomski-projekt/relayer/message"
 	"github.com/mpetrun5/diplomski-projekt/store"
-	"github.com/mpetrun5/diplomski-projekt/types"
 
 	"github.com/rs/zerolog/log"
 )
@@ -24,7 +23,7 @@ var (
 )
 
 type EventHandler interface {
-	HandleEvent(sourceID, destID uint8, nonce uint64, resourceID types.ResourceID, calldata, handlerResponse []byte) (*message.Message, error)
+	HandleEvent(sourceID, destID uint8, nonce uint64, resourceID [32]byte, calldata, handlerResponse []byte) (*message.Message, error)
 }
 type ChainClient interface {
 	LatestBlock() (*big.Int, error)
