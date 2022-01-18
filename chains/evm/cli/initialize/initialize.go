@@ -5,9 +5,9 @@ import (
 
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls"
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls/evmclient"
+	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls/evmgaspricer"
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls/transactor"
 	"github.com/mpetrun5/diplomski-projekt/chains/evm/calls/transactor/signAndSend"
-	"github.com/mpetrun5/diplomski-projekt/chains/evm/evmgaspricer"
 	"github.com/mpetrun5/diplomski-projekt/crypto/secp256k1"
 )
 
